@@ -6,4 +6,4 @@ app.register_blueprint(object_detection_blueprint)
 app.register_blueprint(token)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0', port=5000, debug=True)
