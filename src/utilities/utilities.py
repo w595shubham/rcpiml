@@ -1,6 +1,12 @@
 import base64
+import datetime
+import sqlite3
+
 import cv2
 import numpy as np
+
+from src import logger, app
+from src.constants import sql_object
 from src.utilities.visualization_utils import visualize_boxes_and_labels_on_image_array
 
 
@@ -65,3 +71,19 @@ def get_xy_coordinates(box, image_bytes):
         'ymax': ymax,
     }
 
+
+def has_user_expired(username):
+    # Check if user is expired or not
+    logger.info("Check if user is expired or not")
+    now = datetime.datetime.now()
+
+    # Create database connection with sqlite database
+    conn = sqlite3.connect(app.config['SQLALCHEMY_DATABASE_FILE'])
+    cursor = conn.cursor()
+    updated_query = sql_object.UPDATE_LAST_ACTIVE_USER_BY_NAME.format(now, username, now)
+    logger.info("UPDATE_LAST_ACTIVE_USER_BY_NAME query %s", updated_query)
+
+    # Execute query and fetch result
+    rows_affected = cursor.execute(updated_query)
+    conn.commit()
+    return rows_affected.rowcount == 0 if True else False
