@@ -6,7 +6,9 @@ import cv2
 import numpy
 from flask import Blueprint
 from flask_restplus import Api, Resource
+from pyzbar import pyzbar
 from werkzeug.datastructures import FileStorage
+
 from src.infrastructure.logging.initialize import LoggerAdapter
 from src.infrastructure.security.middleware.secureroute import secureroute
 from src.resources.objectdetection import prediction_session
@@ -53,4 +55,28 @@ class CarPartRelationshipHierarchies(Resource):
             return json.dumps(['Internal server error']), 500, {'Content-type': 'application/json'}
 
 
+@ns_object_detection.route('/decodebarcode')
+class BarCodeDetection(Resource):
+    @secureroute()
+    def post(self):
+        logger = logging.getLogger(__name__)
+        logger = LoggerAdapter(logger)
 
+        try:
+            args = upload_parser.parse_args()
+            uploaded_file = args['file']  # This is FileStorage instance
+
+            # load the input image
+            image_bytes = cv2.imdecode(numpy.fromstring(uploaded_file.read(), numpy.uint8), cv2.IMREAD_UNCHANGED)
+
+            # find the barcodes in the image and decode each of the barcodes
+            barcodes = pyzbar.decode(image_bytes)
+
+            detected_barcodes = []
+            # loop over the detected barcodes
+            for barcode in barcodes:
+                detected_barcodes.append(barcode.data.decode("utf-8"))
+            return json.loads(json.dumps(detected_barcodes)), 200, {'Content-type': 'application/json'}
+        except Exception as e:
+            logger.error("Fatal error in main loop", exc_info=True)
+            return json.dumps(['Internal server error']), 500, {'Content-type': 'application/json'}
