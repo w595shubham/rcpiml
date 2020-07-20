@@ -41,7 +41,7 @@ class CarPartRelationshipHierarchies(Resource):
             PATH_TO_LABELS = os.path.join(root, 'trained_model', 'training', 'labelmap.pbtxt')
 
             label_map = load_labelmap(PATH_TO_LABELS)
-            categories = convert_label_map_to_categories(label_map, max_num_classes=4, use_display_name=True)
+            categories = convert_label_map_to_categories(label_map, max_num_classes=7, use_display_name=True)
             category_index = create_category_index(categories)
 
             logger.info('Predicting image start')
